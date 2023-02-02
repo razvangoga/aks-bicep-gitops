@@ -31,7 +31,7 @@
         ],
         "applications": [
             {
-                "name": "adcd-app-of-apps",
+                "name": "argo-app-of-apps",
                 "namespace": "argocd",
                 "project": "acdc",
                 "source": {
