@@ -1,0 +1,54 @@
+{
+    "argocd": {
+        "configs": {
+            "repositories": {
+                "aks-bicep-repo": {
+                    "name": "aks-bicep-repo",
+                    "url": "https://github.com/razvangoga/aks-bicep-gitops.git"
+                }
+            }
+        }
+    },
+    "argocdApps": {
+        "projects": [
+            {
+                "name": "acdc",
+                "namespace": "argocd",
+                "sourceRepos": [
+                    "*"
+                ],
+                "destinations": [
+                    {
+                        "namespace": "argo-apps",
+                        "server": "https://kubernetes.default.svc"
+                    }
+                ]
+            }
+        ],
+        "applications": [
+            {
+                "name": "adcd-app-of-apps",
+                "namespace": "argocd",
+                "project": "acdc",
+                "source": {
+                    "repoURL": "https://github.com/razvangoga/aks-bicep-gitops.git",
+                    "targetRevision": "HEAD",
+                    "path": "argocd/apps/dev",
+                    "directory": {
+                        "recurse": true
+                    }
+                },
+                "destination": {
+                    "server": "https://kubernetes.default.svc",
+                    "namespace": "argo-apps"
+                },
+                "syncPolicy": {
+                    "automated": {
+                        "prune": true,
+                        "selfHeal": true
+                    }
+                }
+            }
+        ]
+    }
+}
