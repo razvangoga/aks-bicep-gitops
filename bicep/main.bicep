@@ -4,7 +4,11 @@ param clusterName string
 @description('The location of the Managed Cluster resource.')
 param location string = resourceGroup().location
 
-module aks 'aks.bicep' = {
+param provisionAks bool = false
+param provisionArgo bool = true
+param provisionFlux bool = false
+
+module aks 'aks.bicep' = if(provisionAks) {
   name: 'aks'
   params: {
     clusterName: clusterName
@@ -12,7 +16,7 @@ module aks 'aks.bicep' = {
   }
 }
 
-module argocd 'helm.bicep' = {
+module argocd 'helm.bicep' = if(provisionArgo) {
   name: 'argocd'
   params: {
     useExistingManagedIdentity: false
@@ -30,7 +34,7 @@ module argocd 'helm.bicep' = {
   }
 }
 
-module fluxcd 'helm.bicep' = {
+module fluxcd 'helm.bicep' = if(provisionFlux) {
   name: 'fluxcd'
   params: {
     useExistingManagedIdentity: false
