@@ -19,6 +19,10 @@
                 ],
                 "destinations": [
                     {
+                        "namespace": "argocd",
+                        "server": "https://kubernetes.default.svc"
+                    },                    
+                    {
                         "namespace": "argo-apps",
                         "server": "https://kubernetes.default.svc"
                     }
