@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: argo-sample-app1
+  name: flux-sample-app4
 spec:
   template:
     spec:
       containers:
-        - name: argo-sample
+        - name: flux-sample
           resources:
             limits:
               cpu: 500m

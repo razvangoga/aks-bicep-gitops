@@ -1,0 +1,18 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
+kind: Kustomization
+metadata:
+  name: flux-app3
+  namespace: fluxcd
+spec:
+  interval: 10m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+path: fluxcd/flux-apps/app3/overlays/dev
+prune: true
+validation: client
+healthChecks:
+  - apiVersion: apps/v1
+    kind: DaemonSet
+    name: nginx-ingress-ingress-nginx-controller
+    namespace: ingress-nginx

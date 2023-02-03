@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: argo-sample-app1
+  name: argo-sample-app2
 spec:
   template:
     spec:
       containers:
-        - name: sb-sample
+        - name: argo-sample
           resources:
             limits:
               cpu: 500m

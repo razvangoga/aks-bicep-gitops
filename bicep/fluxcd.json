@@ -1,0 +1,16 @@
+{
+    "fluxcdApps": {
+        "gitRepository": {
+            "spec": {
+                "url": "https://github.com/razvangoga/aks-bicep-gitops.git",
+                "ref": "HEAD"
+            }
+        },
+
+        "kustomization": {
+            "spec": {
+                "path": "/fluxcd/flux-apps"
+            }
+        }
+    }
+}

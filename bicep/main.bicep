@@ -6,10 +6,11 @@ param location string = resourceGroup().location
 
 param provisionAks bool = false
 param provisionArgo bool = false
-param provisionArgoApps bool = true
-param provisionFlux bool = false
+param provisionArgoApps bool = false
+param provisionFlux bool = true
+param provisionFluxApps bool = true
 
-module aks 'aks.bicep' = if(provisionAks) {
+module aks 'aks.bicep' = if (provisionAks) {
   name: 'aks'
   params: {
     clusterName: clusterName
@@ -18,7 +19,8 @@ module aks 'aks.bicep' = if(provisionAks) {
 }
 
 var argocdValues = loadJsonContent('argocd.json')
-module argocd 'helm.bicep' = if(provisionArgo) {
+
+module argocd 'helm.bicep' = if (provisionArgo) {
   name: 'argocd'
   params: {
     useExistingManagedIdentity: false
@@ -38,7 +40,7 @@ module argocd 'helm.bicep' = if(provisionArgo) {
   }
 }
 
-module argocdApps 'helm.bicep' = if(provisionArgoApps) {
+module argocdApps 'helm.bicep' = if (provisionArgoApps) {
   name: 'argocdApps'
   params: {
     useExistingManagedIdentity: false
@@ -58,7 +60,8 @@ module argocdApps 'helm.bicep' = if(provisionArgoApps) {
   }
 }
 
-module fluxcd 'helm.bicep' = if(provisionFlux) {
+var fluxcdValues = loadJsonContent('fluxcd.json')
+module fluxcd 'helm.bicep' = if (provisionFlux) {
   name: 'fluxcd'
   params: {
     useExistingManagedIdentity: false
@@ -71,6 +74,25 @@ module fluxcd 'helm.bicep' = if(provisionFlux) {
         helmApp: 'fluxcd-community/flux2'
         helmAppName: 'fluxcd'
         helmAppParams: '--namespace fluxcd --create-namespace'
+      }
+    ]
+  }
+}
+
+module fluxcdApps 'helm.bicep' = if (provisionFluxApps) {
+  name: 'fluxcdApps'
+  params: {
+    useExistingManagedIdentity: false
+    aksName: clusterName
+    location: location
+    helmRepo: 'fluxcd-community'
+    helmRepoURL: 'https://fluxcd-community.github.io/helm-charts'
+    helmApps: [
+      {
+        helmApp: 'fluxcd-community/flux2-sync'
+        helmAppName: 'fluxcd'
+        helmAppParams: '--namespace fluxcd --create-namespace'
+        helmAppValues: '--set-json=\'gitRepository=${string(fluxcdValues.fluxcdApps.gitRepository)}\' --set-json=\'kustomization=${string(fluxcdValues.fluxcdApps.kustomization)}\''
       }
     ]
   }
