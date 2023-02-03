@@ -12,4 +12,5 @@ An ArgoCD instance can be **completly** provisioned via Helm charts (with projec
 
 ## [FluxCD](https://fluxcd.io/)
 
-TBD
+- [main FluxCD instance](https://github.com/fluxcd-community/helm-charts/tree/main/charts/flux2)
+- [Flux Sync - application definition](https://github.com/fluxcd-community/helm-charts/tree/main/charts/flux2-sync)

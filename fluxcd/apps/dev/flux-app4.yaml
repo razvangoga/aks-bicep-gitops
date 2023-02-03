@@ -12,8 +12,3 @@ spec:
 path: fluxcd/flux-apps/app4/overlays/dev
 prune: true
 validation: client
-healthChecks:
-  - apiVersion: apps/v1
-    kind: DaemonSet
-    name: nginx-ingress-ingress-nginx-controller
-    namespace: ingress-nginx

@@ -3,10 +3,11 @@
         "gitRepository": {
             "spec": {
                 "url": "https://github.com/razvangoga/aks-bicep-gitops.git",
-                "ref": "HEAD"
+                "ref": {
+                    "branch": "main"
+                }
             }
         },
-
         "kustomization": {
             "spec": {
                 "path": "/fluxcd/flux-apps"

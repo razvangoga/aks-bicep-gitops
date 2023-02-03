@@ -7,7 +7,7 @@ param location string = resourceGroup().location
 param provisionAks bool = false
 param provisionArgo bool = false
 param provisionArgoApps bool = false
-param provisionFlux bool = true
+param provisionFlux bool = false
 param provisionFluxApps bool = true
 
 module aks 'aks.bicep' = if (provisionAks) {
@@ -90,7 +90,7 @@ module fluxcdApps 'helm.bicep' = if (provisionFluxApps) {
     helmApps: [
       {
         helmApp: 'fluxcd-community/flux2-sync'
-        helmAppName: 'fluxcd'
+        helmAppName: 'fluxcd-sync'
         helmAppParams: '--namespace fluxcd --create-namespace'
         helmAppValues: '--set-json=\'gitRepository=${string(fluxcdValues.fluxcdApps.gitRepository)}\' --set-json=\'kustomization=${string(fluxcdValues.fluxcdApps.kustomization)}\''
       }
