@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: flux-sample-app4
-  namespace: flux-apps  
+  namespace: flux-apps
 spec:
   replicas: 1
   strategy:
