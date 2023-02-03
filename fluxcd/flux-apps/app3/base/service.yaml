@@ -2,7 +2,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: flux-sample-app3-svc
-  namespace: flux-apps
 spec:
   selector:
     app: flux-sample-app3

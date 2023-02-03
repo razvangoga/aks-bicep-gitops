@@ -8,6 +8,6 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
-path: './fluxcd/flux-apps/app4/overlays/dev/'
-prune: true
-validation: client
+  path: './fluxcd/flux-apps/app4/overlays/dev/'
+  prune: true
+  targetNamespace: flux-apps

@@ -10,7 +10,7 @@
         },
         "kustomization": {
             "spec": {
-                "path": "/fluxcd/flux-apps"
+                "path": "/fluxcd/apps/dev"
             }
         }
     }
