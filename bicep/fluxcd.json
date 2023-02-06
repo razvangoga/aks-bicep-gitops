@@ -13,5 +13,12 @@
                 "path": "/fluxcd/apps/dev"
             }
         }
+    },
+    "weave": {
+        "adminUser": {
+            "create": true,
+            "username": "admin",
+            "passwordHash": "$2a$10$P/tHQ1DNFXdvX0zRGA8LPeSOyb0JXq9rP3fZ4W8HGTpLV7qHDlWhe"            
+        }
     }
 }

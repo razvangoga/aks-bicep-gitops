@@ -8,7 +8,8 @@ param provisionAks bool = false
 param provisionArgo bool = false
 param provisionArgoApps bool = false
 param provisionFlux bool = false
-param provisionFluxApps bool = true
+param provisionFluxApps bool = false
+param provisionFluxUI bool = false
 
 module aks 'aks.bicep' = if (provisionAks) {
   name: 'aks'
@@ -93,6 +94,26 @@ module fluxcdApps 'helm.bicep' = if (provisionFluxApps) {
         helmAppName: 'fluxcd-sync'
         helmAppParams: '--namespace fluxcd --create-namespace'
         helmAppValues: '--set-json=\'gitRepository=${string(fluxcdValues.fluxcdApps.gitRepository)}\' --set-json=\'kustomization=${string(fluxcdValues.fluxcdApps.kustomization)}\''
+      }
+    ]
+  }
+}
+
+
+module fluxcdUI 'helm.bicep' = if (provisionFluxUI) {
+  name: 'fluxcdUI'
+  params: {
+    useExistingManagedIdentity: false
+    aksName: clusterName
+    location: location
+    helmRepo: 'weave-gitops'
+    helmRepoURL: 'https://helm.gitops.weave.works/'
+    helmApps: [
+      {
+        helmApp: 'weave-gitops/weave-gitops'
+        helmAppName: 'fluxcd-ui'
+        helmAppParams: '--namespace fluxcd --create-namespace'
+        helmAppValues: '--set-json=\'adminUser=${string(fluxcdValues.weave.adminUser)}\''
       }
     ]
   }
