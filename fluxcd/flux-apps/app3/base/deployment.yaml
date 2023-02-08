@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: flux-sample-app3
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
