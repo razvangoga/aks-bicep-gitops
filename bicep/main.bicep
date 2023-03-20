@@ -22,7 +22,7 @@ module aks 'aks.bicep' = if (provisionAks) {
 }
 
 resource aksResource 'Microsoft.ContainerService/managedClusters@2022-11-02-preview' existing = {
-  name: 'aks'
+  name: clusterName
 }
 
 resource aksrunidentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
@@ -40,7 +40,8 @@ resource rbac 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for roleDe
   }
 }]
 
-//pass is argonauts go
+//pass is argonauts go encrypted with bcrypt
+// https://bcrypt-generator.com/
 var pass = '$2a$10$PGzh9.vwZb765z5kV4Bp9eIKKvjsPYiQQkewrVaZuPeVTaQ56dR/y'
 
 var argocdValues = loadTextContent('argocd.yaml')
@@ -62,7 +63,7 @@ module argocd 'helm.bicep' = if (provisionArgo) {
         helmAppParams: '--namespace argocd --create-namespace --wait'
         //https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
         helmAppValues: argocdValues
-        helmAppValueOverrides: '--set configs.secret.argocdServerAdminPassword=${pass}'
+        helmAppValueOverrides: '--set \'configs.secret.argocdServerAdminPassword=${pass}\''
       }, {
         helmRepo: 'argo'
         helmRepoURL: 'https://argoproj.github.io/argo-helm'
@@ -107,7 +108,7 @@ module fluxcd 'helm.bicep' = if (provisionFlux) {
         helmAppName: 'fluxcd-ui'
         helmAppParams: '--namespace fluxcd --create-namespace --wait'
         helmAppValues: fluxcdWeaveValues
-        helmAppValueOverrides: '--set adminUser.passwordHash=${pass}'
+        helmAppValueOverrides: '--set \'adminUser.passwordHash=${pass}\''
       }
     ]
   }
