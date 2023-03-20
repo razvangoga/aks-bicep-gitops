@@ -1,3 +1,4 @@
+//https://github.com/Azure/bicep-registry-modules/blob/main/modules/deployment-scripts/aks-run-command/README.md
 //https://github.com/aristosvo/aks-maffe-maandag
 
 @description('The name of the Azure Kubernetes Service')
