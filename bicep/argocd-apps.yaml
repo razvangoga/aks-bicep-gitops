@@ -1,0 +1,27 @@
+projects:
+  - name: acdc
+    namespace: argocd
+    sourceRepos:
+      - "*"
+    destinations:
+      - namespace: argocd
+        server: https://kubernetes.default.svc
+      - namespace: argo-apps
+        server: https://kubernetes.default.svc
+applications:
+  - name: argo-app-of-apps
+    namespace: argocd
+    project: acdc
+    source:
+      repoURL: https://github.com/razvangoga/aks-bicep-gitops.git
+      targetRevision: HEAD
+      path: argocd/apps/dev
+      directory:
+        recurse: true
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: argo-apps
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true

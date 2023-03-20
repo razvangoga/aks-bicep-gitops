@@ -4,12 +4,14 @@ param clusterName string
 @description('The location of the Managed Cluster resource.')
 param location string = resourceGroup().location
 
-param provisionAks bool = false
-param provisionArgo bool = false
-param provisionArgoApps bool = false
-param provisionFlux bool = false
-param provisionFluxApps bool = false
-param provisionFluxUI bool = false
+param provisionAks bool = true
+param provisionArgo bool = true
+param provisionFlux bool = true
+
+param rbacRolesNeeded array = [
+  'b24988ac-6180-42a0-ab88-20f7382dd24c' //Contributor
+  '7f6c6a51-bcf8-42ba-9220-52d62157d7db' //Azure Kubernetes Service RBAC Reader
+]
 
 module aks 'aks.bicep' = if (provisionAks) {
   name: 'aks'
@@ -19,101 +21,93 @@ module aks 'aks.bicep' = if (provisionAks) {
   }
 }
 
-var argocdValues = loadJsonContent('argocd.json')
+resource aksResource 'Microsoft.ContainerService/managedClusters@2022-11-02-preview' existing = {
+  name: 'aks'
+}
+
+resource aksrunidentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
+  name: 'aks-helm-install'
+  location: location
+}
+
+resource rbac 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for roleDefId in rbacRolesNeeded: {
+  name: guid(roleDefId, aksrunidentity.id)
+  scope: aksResource
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleDefId)
+    principalId: aksrunidentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}]
+
+//pass is argonauts go
+var pass = '$2a$10$PGzh9.vwZb765z5kV4Bp9eIKKvjsPYiQQkewrVaZuPeVTaQ56dR/y'
+
+var argocdValues = loadTextContent('argocd.yaml')
+var argocdAppValues = loadTextContent('argocd-apps.yaml')
 
 module argocd 'helm.bicep' = if (provisionArgo) {
   name: 'argocd'
   params: {
-    useExistingManagedIdentity: false
+    useExistingManagedIdentity: true
+    managedIdentityName: aksrunidentity.name
     aksName: clusterName
     location: location
-    helmRepo: 'argo'
-    helmRepoURL: 'https://argoproj.github.io/argo-helm'
     helmApps: [
       {
+        helmRepo: 'argo'
+        helmRepoURL: 'https://argoproj.github.io/argo-helm'
         helmApp: 'argo/argo-cd'
         helmAppName: 'argocd'
-        helmAppParams: '--namespace argocd --create-namespace'
+        helmAppParams: '--namespace argocd --create-namespace --wait'
         //https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
-        helmAppValues: '--set-json=\'configs.repositories=${string(argocdValues.argocd.configs.repositories)}\''
-      }
-    ]
-  }
-}
-
-module argocdApps 'helm.bicep' = if (provisionArgoApps) {
-  name: 'argocdApps'
-  params: {
-    useExistingManagedIdentity: false
-    aksName: clusterName
-    location: location
-    helmRepo: 'argo'
-    helmRepoURL: 'https://argoproj.github.io/argo-helm'
-    helmApps: [
-      {
+        helmAppValues: argocdValues
+        helmAppValueOverrides: '--set configs.secret.argocdServerAdminPassword=${pass}'
+      }, {
+        helmRepo: 'argo'
+        helmRepoURL: 'https://argoproj.github.io/argo-helm'
         helmApp: 'argo/argocd-apps'
         helmAppName: 'argocd-apps'
-        helmAppParams: '--namespace argocd --create-namespace'
+        helmAppParams: '--namespace argocd --create-namespace --wait'
         //https://github.com/argoproj/argo-helm/blob/main/charts/argocd-apps/values.yaml
-        helmAppValues: '--set-json=\'projects=${string(argocdValues.argocdApps.projects)}\' --set-json=\'applications=${string(argocdValues.argocdApps.applications)}\''
+        helmAppValues: argocdAppValues
       }
     ]
   }
 }
 
-var fluxcdValues = loadJsonContent('fluxcd.json')
+var fluxcdSyncValues = loadTextContent('fluxcd-sync.yaml')
+var fluxcdWeaveValues = loadTextContent('fluxcd-weave.yaml')
+
 module fluxcd 'helm.bicep' = if (provisionFlux) {
   name: 'fluxcd'
   params: {
-    useExistingManagedIdentity: false
+    useExistingManagedIdentity: true
+    managedIdentityName: aksrunidentity.name
     aksName: clusterName
     location: location
-    helmRepo: 'fluxcd-community'
-    helmRepoURL: 'https://fluxcd-community.github.io/helm-charts'
     helmApps: [
       {
+        helmRepo: 'fluxcd-community'
+        helmRepoURL: 'https://fluxcd-community.github.io/helm-charts'
         helmApp: 'fluxcd-community/flux2'
         helmAppName: 'fluxcd'
-        helmAppParams: '--namespace fluxcd --create-namespace'
-      }
-    ]
-  }
-}
-
-module fluxcdApps 'helm.bicep' = if (provisionFluxApps) {
-  name: 'fluxcdApps'
-  params: {
-    useExistingManagedIdentity: false
-    aksName: clusterName
-    location: location
-    helmRepo: 'fluxcd-community'
-    helmRepoURL: 'https://fluxcd-community.github.io/helm-charts'
-    helmApps: [
-      {
+        helmAppParams: '--namespace fluxcd --create-namespace --wait'
+      }, {
+        helmRepo: 'fluxcd-community'
+        helmRepoURL: 'https://fluxcd-community.github.io/helm-charts'
         helmApp: 'fluxcd-community/flux2-sync'
         helmAppName: 'fluxcd-sync'
-        helmAppParams: '--namespace fluxcd --create-namespace'
-        helmAppValues: '--set-json=\'gitRepository=${string(fluxcdValues.fluxcdApps.gitRepository)}\' --set-json=\'kustomization=${string(fluxcdValues.fluxcdApps.kustomization)}\''
-      }
-    ]
-  }
-}
-
-
-module fluxcdUI 'helm.bicep' = if (provisionFluxUI) {
-  name: 'fluxcdUI'
-  params: {
-    useExistingManagedIdentity: false
-    aksName: clusterName
-    location: location
-    helmRepo: 'weave-gitops'
-    helmRepoURL: 'https://helm.gitops.weave.works/'
-    helmApps: [
-      {
+        helmAppParams: '--namespace fluxcd --create-namespace --wait'
+        helmAppValues: fluxcdSyncValues
+      }, {
+        helmRepo: 'weave-gitops'
+        helmRepoURL: 'https://helm.gitops.weave.works/'
         helmApp: 'weave-gitops/weave-gitops'
         helmAppName: 'fluxcd-ui'
-        helmAppParams: '--namespace fluxcd --create-namespace'
-        helmAppValues: '--set-json=\'adminUser=${string(fluxcdValues.weave.adminUser)}\''
+        helmAppParams: '--namespace fluxcd --create-namespace --wait'
+        helmAppValues: fluxcdWeaveValues
+        helmAppValueOverrides: '--set adminUser.passwordHash=${pass}'
       }
     ]
   }

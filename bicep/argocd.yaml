@@ -1,0 +1,5 @@
+configs:
+  repositories:
+    aks-bicep-repo:
+      name: aks-bicep-repo
+      url: https://github.com/razvangoga/aks-bicep-gitops.git

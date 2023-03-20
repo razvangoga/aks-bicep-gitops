@@ -21,12 +21,6 @@ param existingManagedIdentitySubId string = subscription().subscriptionId
 @description('For an existing Managed Identity, the Resource Group it is located in')
 param existingManagedIdentityResourceGroupName string = resourceGroup().name
 
-@description('Public Helm Repo Name')
-param helmRepo string = 'azure-marketplace'
-
-@description('Public Helm Repo URL')
-param helmRepoURL string = 'https://marketplace.azurecr.io/helm/v1/repo'
-
 @description('Helm Apps {helmApp: \'azure-marketplace/wordpress\', helmAppName: \'my-wordpress\'}')
 param helmApps array = []
 
@@ -38,13 +32,14 @@ param helmApps array = []
 @description('When the script resource is cleaned up')
 param cleanupPreference string = 'OnSuccess'
 
+@batchSize(1)
 module helmAppInstalls 'br/public:deployment-scripts/aks-run-command:1.0.1' = [for (app, i) in helmApps: {
   name: 'helmInstall-${app.helmAppName}-${i}'
   params: {
     aksName: aksName
     location: location
     commands: [
-      'helm repo add ${helmRepo} ${helmRepoURL} && helm repo update && helm upgrade --install ${app.helmAppName} ${app.helmApp} ${contains(app, 'helmAppParams') ? app.helmAppParams : ''} ${contains(app, 'helmAppValues') ? app.helmAppValues : ''}'
+      'helm repo add ${app.helmRepo} ${app.helmRepoURL} && helm repo update && ${contains(app, 'helmAppValues') ? 'cat <<EOF |' : ''} helm upgrade --install ${app.helmAppName} ${app.helmApp} ${contains(app, 'helmAppParams') ? app.helmAppParams : ''} ${contains(app, 'helmAppValueOverrides') ? app.helmAppValueOverrides : ''} ${contains(app, 'helmAppValues') ? '--values - \n${app.helmAppValues}\nEOF\n' : ''}'
     ]
     forceUpdateTag: forceUpdateTag
     useExistingManagedIdentity: useExistingManagedIdentity
