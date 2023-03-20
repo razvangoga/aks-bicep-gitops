@@ -28,11 +28,19 @@ resource aksResource 'Microsoft.ContainerService/managedClusters@2022-11-02-prev
 resource aksrunidentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
   name: 'aks-helm-install'
   location: location
+  dependsOn: [
+    aks
+    aksResource
+  ]
 }
 
 resource rbac 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for roleDefId in rbacRolesNeeded: {
-  name: guid(roleDefId, aksrunidentity.id)
+  name: guid(aksResource.id, roleDefId, aksrunidentity.id)
   scope: aksResource
+  dependsOn: [
+    aks
+    aksResource
+  ]  
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleDefId)
     principalId: aksrunidentity.properties.principalId
@@ -49,6 +57,10 @@ var argocdAppValues = loadTextContent('argocd-apps.yaml')
 
 module argocd 'helm.bicep' = if (provisionArgo) {
   name: 'argocd'
+  dependsOn: [
+    aks
+    aksResource
+  ]  
   params: {
     useExistingManagedIdentity: true
     managedIdentityName: aksrunidentity.name
@@ -82,6 +94,10 @@ var fluxcdWeaveValues = loadTextContent('fluxcd-weave.yaml')
 
 module fluxcd 'helm.bicep' = if (provisionFlux) {
   name: 'fluxcd'
+  dependsOn: [
+    aks
+    aksResource
+  ]  
   params: {
     useExistingManagedIdentity: true
     managedIdentityName: aksrunidentity.name
