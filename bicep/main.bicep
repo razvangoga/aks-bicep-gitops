@@ -48,7 +48,7 @@ resource rbac 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for roleDe
   }
 }]
 
-//pass is argonauts go encrypted with bcrypt
+//pass is argonautsgo encrypted with bcrypt
 // https://bcrypt-generator.com/
 var pass = '$2a$10$PGzh9.vwZb765z5kV4Bp9eIKKvjsPYiQQkewrVaZuPeVTaQ56dR/y'
 
