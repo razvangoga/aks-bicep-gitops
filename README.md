@@ -19,7 +19,7 @@ An FluxCD instance can be **completly** provisioned via Helm charts (with git re
 - [Flux Sync - application definition](https://github.com/fluxcd-community/helm-charts/tree/main/charts/flux2-sync)
 
 ### 3rd Party Helm Charts
-- [UI - Weave Gitops](https://github.com/weaveworks/weave-gitops) - [helm char repo](https://helm.gitops.weave.works/)
+- [UI - Weave Gitops](https://github.com/weaveworks/weave-gitops) - [helm chart repo](https://helm.gitops.weave.works/)
 - [sample repo that was helpfull](https://github.com/stefanprodan/flux-local-dev)
 
 ``` yaml
